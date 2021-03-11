@@ -3,8 +3,14 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 
+#ifdef SATDUMP_EXPORT
+#define SATDUMP_EXP __declspec(dllexport)
+#else
+#define  SATDUMP_EXP __declspec(dllimport)
+#endif
+
 // Main logger instance
-extern std::shared_ptr<spdlog::logger> logger;
+SATDUMP_EXP extern std::shared_ptr<spdlog::logger> logger;
 
 // Initialize the logger
 void initLogger();

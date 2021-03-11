@@ -4,6 +4,8 @@
 #include "imgui/imgui.h"
 #include <volk/volk.h>
 
+#define M_PI 3.14159265358979323846
+
 // Return filesize
 size_t getFilesize(std::string filepath);
 

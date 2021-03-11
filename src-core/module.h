@@ -9,6 +9,12 @@
 #include "imgui/imgui_flags.h"
 #include "pipe.h"
 
+#ifdef SATDUMP_EXPORT
+#define SATDUMP_EXP __declspec(dllexport)
+#else
+#define  SATDUMP_EXP __declspec(dllimport)
+#endif
+
 #define WRITE_IMAGE(image, path)               \
     image.save_png(std::string(path).c_str()); \
     d_output_files.push_back(path);
@@ -49,6 +55,6 @@ public:
     static std::shared_ptr<ProcessingModule> getInstance(std::string input_file, std::string output_file_hint, std::map<std::string, std::string> parameters);
 };
 
-extern std::map<std::string, std::function<std::shared_ptr<ProcessingModule>(std::string, std::string, std::map<std::string, std::string>)>> modules_registry;
+SATDUMP_EXP extern std::map<std::string, std::function<std::shared_ptr<ProcessingModule>(std::string, std::string, std::map<std::string, std::string>)>> modules_registry;
 
 void registerModules();

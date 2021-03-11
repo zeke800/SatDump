@@ -1,4 +1,5 @@
 #include "logger.h"
+#include <spdlog/spdlog.h>
 #include "module.h"
 #include "pipeline.h"
 #include <signal.h>

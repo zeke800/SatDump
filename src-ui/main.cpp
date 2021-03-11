@@ -1,12 +1,11 @@
 #include "processing.h"
-#include "logger.h"
 #include "style.h"
 #include "gl.h"
 #include "logger.h"
 #include "module.h"
+#include "pipeline.h"
 #include <signal.h>
 #include <filesystem>
-
 #include <fstream>
 #include "processing.h"
 #include <thread>

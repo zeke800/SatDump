@@ -5,6 +5,12 @@
 #include <mutex>
 #include <vector>
 
+#ifdef SATDUMP_EXPORT
+#define SATDUMP_EXP __declspec(dllexport)
+#else
+#define  SATDUMP_EXP __declspec(dllimport)
+#endif
+
 struct PipelineModule
 {
     std::string module_name;
@@ -36,6 +42,6 @@ struct Pipeline
              std::shared_ptr<std::mutex> uiCallListMutex = nullptr);
 };
 
-extern std::vector<Pipeline> pipelines;
+SATDUMP_EXP extern std::vector<Pipeline> pipelines;
 
 void loadPipelines(std::string filepath);

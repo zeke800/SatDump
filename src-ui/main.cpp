@@ -1,18 +1,17 @@
-#include "processing.h"
 #include "style.h"
 #include "gl.h"
 #include "logger.h"
 #include "module.h"
 #include "pipeline.h"
 #include <signal.h>
-#include <filesystem>
-#include <fstream>
+//#include <filesystem>
+//#include <fstream>
 #include "processing.h"
 #include <thread>
 #include <GLFW/glfw3.h>
 #include "imgui/imgui_flags.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
-#include "fft.h"
+//#include "fft.h"
 #include "modules/common/ctpl/ctpl_stl.h"
 
 static void glfw_error_callback(int error, const char *description)
@@ -167,8 +166,8 @@ int main(int argc, char *argv[])
     if (processing)
         processThreadPool.push([&](int) { process(downlink_pipeline, input_level, input_file, output_level, output_file, parameters); });
 
-    std::shared_ptr<SDRSource> airspySource;
-    std::shared_ptr<ProcessingModule> demodModule;
+  //  std::shared_ptr<SDRSource> airspySource;
+  //  std::shared_ptr<ProcessingModule> demodModule;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -202,14 +201,14 @@ int main(int argc, char *argv[])
 
                 //ImGui::End();
             }
-            else if (livedemod)
+            else if (false)//livedemod)
             {
-                ImGui::SetNextWindowPos({0, 0});
+                /*ImGui::SetNextWindowPos({0, 0});
                 ImGui::SetNextWindowSize({(float)wwidth, (float)wheight - 265});
                 airspySource->drawUI();
                 ImGui::SetNextWindowPos({0, (float)wheight - 265});
                 ImGui::SetNextWindowSize({(float)wwidth, (float)265});
-                demodModule->drawUI();
+                demodModule->drawUI();*/
             }
             else
             {
@@ -437,7 +436,7 @@ int main(int argc, char *argv[])
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Live processing"))
-                    {
+                    {/*
                         ImGui::BeginGroup();
                         {
                             std::string names;
@@ -485,7 +484,7 @@ int main(int argc, char *argv[])
                                 }
 
                                 if (result.result().size() > 0)
-                                    output_file = result.result();*/
+                                    output_file = result.result();*//*
                                 char const *result = tinyfd_selectFolderDialog(
                                     "Open output directory", // NULL or ""
                                     NULL);                   // NULL or ""
@@ -631,7 +630,7 @@ int main(int argc, char *argv[])
                         }
                         ImGui::EndGroup();
 
-                        ImGui::EndTabItem();
+                        ImGui::EndTabItem();*/
                     }
                     if (ImGui::BeginTabItem("Credits"))
                     {
@@ -705,11 +704,11 @@ int main(int argc, char *argv[])
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    processThreadPool.stop();
+    //processThreadPool.stop();
 
-    for (int i = 0; i < processThreadPool.size(); i++)
-    {
-        if (processThreadPool.get_thread(i).joinable())
-            processThreadPool.get_thread(i).join();
-    }
+   // for (int i = 0; i < processThreadPool.size(); i++)
+   // {
+   //     if (processThreadPool.get_thread(i).joinable())
+   ///         processThreadPool.get_thread(i).join();
+   // }
 }

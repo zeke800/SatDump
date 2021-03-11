@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 #include <memory>
 #include "pipe.h"
 #include <libairspy/airspy.h>
@@ -30,4 +30,4 @@ public:
     void drawUI();
     void startSDR();
     std::function<void()> stopFuction;
-};
+};*/

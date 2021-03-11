@@ -21,7 +21,7 @@ void Pipeline::run(std::string input_file,
 
     int stepC = 0;
 
-    bool foundLevel;
+    bool foundLevel = false;
 
     for (PipelineStep &step : steps)
     {
@@ -49,6 +49,8 @@ void Pipeline::run(std::string input_file,
             for (const std::pair<std::string, std::string> &param : final_parameters)
                 logger->debug("   - " + param.first + " : " + param.second);
 
+            logger->info("Init module...");
+
             std::shared_ptr<ProcessingModule> module = modules_registry[modStep.module_name](stepC == 0 ? input_file : lastFiles[0], output_directory + "/" + name, final_parameters);
 
             module->setInputType(DATA_FILE);
@@ -60,6 +62,8 @@ void Pipeline::run(std::string input_file,
                 uiCallList->push_back(module);
                 uiCallListMutex->unlock();
             }
+
+            logger->info("Start processing...");
 
             module->process();
 

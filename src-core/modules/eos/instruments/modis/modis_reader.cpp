@@ -32,7 +32,7 @@ namespace eos
                 delete[] channels250m[i];
         }
 
-        std::vector<uint16_t> bytesTo12bits(std::vector<uint8_t> &in, int offset, int skip, int lengthToConvert)
+        std::vector<uint16_t> bytesTo12bits(std::vector<uint8_t> &in, int offset, int /*skip*/, int lengthToConvert)
         {
             std::vector<uint16_t> result;
             int pos = offset;
@@ -52,7 +52,7 @@ namespace eos
         void MODISReader::processDayPacket(ccsds::ccsds_1_0_1024::CCSDSPacket &packet, MODISHeader &header)
         {
             // Filter out calibration packets
-            if (header.type_flag == 1 || header.earth_frame_data_count > 1354 || header.mirror_side > 1)
+            if (header.type_flag == 1 || header.earth_frame_data_count > 1354 /*|| header.mirror_side > 1*/)
                 return;
 
             //std::cout << (int)packet.header.sequence_flag << " " << (int)header.earth_frame_data_count << std::endl;
@@ -165,7 +165,7 @@ namespace eos
         void MODISReader::processNightPacket(ccsds::ccsds_1_0_1024::CCSDSPacket &packet, MODISHeader &header)
         {
             // Filter out calibration packets
-            if (header.type_flag == 1 || header.earth_frame_data_count > 1354 || header.mirror_side > 1)
+            if (header.type_flag == 1 || header.earth_frame_data_count > 1354 /*|| header.mirror_side > 1*/)
                 return;
 
             //std::cout << (int)packet.header.sequence_flag << " " << (int)header.earth_frame_data_count << std::endl;

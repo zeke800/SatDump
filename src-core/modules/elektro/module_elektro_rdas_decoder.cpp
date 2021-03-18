@@ -45,7 +45,7 @@ namespace elektro
         uint8_t finalBuffer[BUFFER_SIZE];
 
         // Bits => Bytes stuff
-        uint8_t byteShifter;
+        uint8_t byteShifter = 0;
         int inByteShifter = 0;
         int byteShifted = 0;
 
@@ -74,14 +74,14 @@ namespace elektro
             diff.decode(finalBuffer, BUFFER_SIZE / 8);
 
             // Deframe that! (Integrated derand)
-            std::vector<std::array<uint8_t, CADU_SIZE>> frameBuffer = deframer.work(finalBuffer, (BUFFER_SIZE / 8));
+            std::vector<std::array<uint8_t, ccsds::ccsds_1_0_1024::CADU_SIZE>> frameBuffer = deframer.work(finalBuffer, (BUFFER_SIZE / 8));
 
             // If we found frames, write them out
             if (frameBuffer.size() > 0)
             {
-                for (std::array<uint8_t, CADU_SIZE> cadu : frameBuffer)
+                for (std::array<uint8_t, ccsds::ccsds_1_0_1024::CADU_SIZE> cadu : frameBuffer)
                 {
-                    data_out.write((char *)&cadu, CADU_SIZE);
+                    data_out.write((char *)&cadu, ccsds::ccsds_1_0_1024::CADU_SIZE);
                 }
             }
 

@@ -1,7 +1,6 @@
-#if FALSE
 #pragma once
 #include <memory>
-#include "pipe.h"
+#include "modules/buffer.h"
 #include <libairspy/airspy.h>
 #include <fftw3.h>
 #include <dsp/pipe.h>
@@ -22,14 +21,13 @@ private:
     int d_frequency;
     char frequency[100];
 
-    std::shared_ptr<satdump::Pipe> d_output_pipe;
+    std::shared_ptr<dsp::stream<std::complex<float>>> d_output_pipe;
     std::thread fft_thread;
     void fftFun();
 
 public:
-    SDRSource(int frequency, int samplerate, std::shared_ptr<satdump::Pipe> output_pipe);
+    SDRSource(int frequency, int samplerate, std::shared_ptr<dsp::stream<std::complex<float>>> output_pipe);
     void drawUI();
     void startSDR();
     std::function<void()> stopFuction;
 };
-#endif

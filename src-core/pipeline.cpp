@@ -53,6 +53,7 @@ void Pipeline::run(std::string input_file,
 
             module->setInputType(DATA_FILE);
             module->setOutputType(DATA_FILE);
+            module->init();
 
             if (ui)
             {

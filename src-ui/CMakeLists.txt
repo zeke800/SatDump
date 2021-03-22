@@ -31,6 +31,18 @@ else()
     target_link_libraries(satdump-ui PRIVATE glfw)
 
     # Airspy
-    #find_library(AIRSPY_LIBRARY airspy REQUIRED)
-    #target_link_libraries(satdump-ui PUBLIC ${AIRSPY_LIBRARY})
+    find_library(AIRSPY_LIBRARY airspy REQUIRED)
+    target_link_libraries(satdump-ui PUBLIC ${AIRSPY_LIBRARY})
+
+    # FFTW3
+    if(APPLE) 
+        set(FFTW3f_DIR /usr/local/lib/cmake/fftw3)
+        find_package(FFTW3f CONFIG REQUIRED)
+        target_link_libraries(satdump-ui PUBLIC FFTW3::fftw3)
+    else()  
+        find_package(PkgConfig)
+        pkg_check_modules(FFTW3 REQUIRED fftw3)
+        target_link_libraries(satdump-ui PUBLIC ${FFTW3_LIBRARIES})
+        target_link_libraries(satdump-ui PUBLIC stdc++fs)
+    endif()
 endif()

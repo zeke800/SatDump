@@ -1,20 +1,23 @@
-#if FALSE
 #include "fft.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_flags.h"
 #include "logger.h"
 #include <complex>
+#include <fstream>
 
 libdsp::Pipe<std::complex<float>> fft_pipe;
 
 static int _rx_callback(airspy_transfer *t)
 {
-    ((satdump::Pipe *)t->ctx)->push((uint8_t *)t->samples, t->sample_count, sizeof(std::complex<float>));
+    // ((satdump::Pipe *)t->ctx)->push((uint8_t *)t->samples, t->sample_count, sizeof(std::complex<float>));
+    //logger->info(t->sample_count);
+    //std::memcpy(((dsp::stream<std::complex<float>> *)t->ctx)->writeBuf, t->samples, t->sample_count * sizeof(std::complex<float>));
+    //((dsp::stream<std::complex<float>> *)t->ctx)->swap(t->sample_count);
     fft_pipe.push((std::complex<float> *)t->samples, t->sample_count);
     return 0;
 };
 
-SDRSource::SDRSource(int frequency, int samplerate, std::shared_ptr<satdump::Pipe> output_pipe)
+SDRSource::SDRSource(int frequency, int samplerate, std::shared_ptr<dsp::stream<std::complex<float>>> output_pipe)
 {
     d_samplerate = samplerate;
     d_frequency = frequency;
@@ -51,21 +54,27 @@ void SDRSource::fftFun()
 {
 
     int refresh_per_second = 20;
-    int runs_to_wait = (d_samplerate / 2048) / (refresh_per_second * 3);
+    int runs_to_wait = (d_samplerate / 8192) / (refresh_per_second * 3);
     int i = 0, y = 0, cnt = 0;
 
     float fftb[2048];
+    int16_t buf16[8192 * 2];
 
-    std::complex<float> sample_buffer[2048];
+    std::complex<float> sample_buffer[8192];
     std::complex<double> buffer_fft_out[2048];
     std::complex<double> buffer_fft_in[2048];
 
     fftw_plan p = fftw_plan_dft_1d(2048, (fftw_complex *)buffer_fft_in, (fftw_complex *)buffer_fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
+   // std::ifstream filein("/home/alan/Downloads/10-44-34_1701298418Hz(MetOp-C).wav");
+
     while (1)
     {
-        cnt = fft_pipe.pop(sample_buffer, 2048, 1000);
+        cnt = fft_pipe.pop(sample_buffer, 8192, 1000);
 
+        std::memcpy(d_output_pipe->writeBuf, sample_buffer, cnt * sizeof(std::complex<float>));
+        d_output_pipe->swap(cnt);
+       
         if (y % runs_to_wait == 0)
         {
             for (int i = 0; i < 2048; i++)
@@ -149,4 +158,3 @@ void SDRSource::drawUI()
 
     ImGui::End();
 }
-#endif

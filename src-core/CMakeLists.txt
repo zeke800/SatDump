@@ -68,6 +68,4 @@ else()
         target_link_libraries(satdump_core PUBLIC ${FFTW3_LIBRARIES})
         target_link_libraries(satdump_core PUBLIC stdc++fs)
     endif()
-
-    
 endif()

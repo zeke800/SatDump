@@ -30,7 +30,7 @@ std::string downlink_pipeline = "";
 std::string input_level = "";
 std::string input_file = "";
 std::string output_level = "products";
-std::string output_file = "";
+std::string output_file = "livetest";
 std::map<std::string, std::string> parameters;
 
 int pipeline_id = -1;
@@ -169,10 +169,8 @@ int main(int argc, char *argv[])
     if (processing)
         processThreadPool.push([&](int) { process(downlink_pipeline, input_level, input_file, output_level, output_file, parameters); });
 
-#if FALSE
     std::shared_ptr<SDRSource> airspySource;
     std::shared_ptr<ProcessingModule> demodModule;
-#endif
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -206,7 +204,6 @@ int main(int argc, char *argv[])
 
                 //ImGui::End();
             }
-#if FALSE
             else if (livedemod)
             {
                 ImGui::SetNextWindowPos({0, 0});
@@ -216,7 +213,6 @@ int main(int argc, char *argv[])
                 ImGui::SetNextWindowSize({(float)wwidth, (float)265});
                 demodModule->drawUI();
             }
-#endif
             else
             {
                 ImGui::SetNextWindowPos({0, 0});
@@ -431,9 +427,8 @@ int main(int argc, char *argv[])
                     if (ImGui::BeginTabItem("Live processing"))
                     {
 
-                        ImGui::Text("Live support is currently being rewritten, and does not work on Windows yet. If you really need it, please stick to an older version.");
+                        //                       ImGui::Text("Live support is currently being rewritten, and does not work on Windows yet. If you really need it, please stick to an older version.");
 
-#if FALSE
                         ImGui::BeginGroup();
                         {
                             std::string names;
@@ -582,20 +577,21 @@ int main(int argc, char *argv[])
                                                                            .modules[0]
                                                                            .module_name]("", output_file + "/" + it->name, final_parameters);
 
-                                        demodModule->setInputType(DATA_STREAM);
+                                        demodModule->setInputType(DATA_DSP_STREAM);
                                         demodModule->setOutputType(DATA_FILE);
-                                        demodModule->input_fifo = std::make_shared<satdump::Pipe>();
+                                        demodModule->input_stream = std::make_shared<dsp::stream<std::complex<float>>>();
+
+                                        demodModule->init();
+
                                         demodModule->input_active = true;
 
-                                        airspySource = std::make_shared<SDRSource>((float)frequency * 1e6, std::stoi(samplerate), demodModule->input_fifo);
-
-                                        processThreadPool.push([&](int) { logger->info("Start processing...");
-                                            demodModule->process(); });
+                                        airspySource = std::make_shared<SDRSource>((float)frequency * 1e6, std::stoi(samplerate), demodModule->input_stream);
 
                                         airspySource->stopFuction = [&]() {
                                             logger->info("Stop live");
                                             demodModule->input_active = false;
-                                            demodModule->input_fifo->~Pipe();
+                                            demodModule->input_fifo->stopReader();
+                                            demodModule->input_fifo->stopWriter();
                                             logger->info("Pipe OK");
                                             //if (demodThread.joinable())
                                             //    demodThread.join();
@@ -606,6 +602,9 @@ int main(int argc, char *argv[])
                                         };
 
                                         airspySource->startSDR();
+
+                                        processThreadPool.push([=](int) { logger->info("Start processing...");
+                                            demodModule->process(); });
 
                                         livedemod = true;
                                     }
@@ -621,7 +620,7 @@ int main(int argc, char *argv[])
                             ImGui::TextColored(ImColor::HSV(0 / 360.0, 1, 1, 1.0), error_message);
                         }
                         ImGui::EndGroup();
-#endif
+                        //#endif
                         ImGui::EndTabItem();
                     }
                     if (ImGui::BeginTabItem("Credits"))

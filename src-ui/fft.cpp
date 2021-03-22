@@ -13,6 +13,7 @@ static int _rx_callback(airspy_transfer *t)
     //logger->info(t->sample_count);
     //std::memcpy(((dsp::stream<std::complex<float>> *)t->ctx)->writeBuf, t->samples, t->sample_count * sizeof(std::complex<float>));
     //((dsp::stream<std::complex<float>> *)t->ctx)->swap(t->sample_count);
+    //std::shared_ptr<dsp::stream<std::complex<float>>> pipe = *((std::shared_ptr<dsp::stream<std::complex<float>>> *)t->ctx);
     fft_pipe.push((std::complex<float> *)t->samples, t->sample_count);
     return 0;
 };
@@ -45,7 +46,7 @@ void SDRSource::startSDR()
     airspy_set_rf_bias(dev, bias);
     airspy_set_linearity_gain(dev, gain);
 
-    airspy_start_rx(dev, &_rx_callback, d_output_pipe.get());
+    airspy_start_rx(dev, &_rx_callback, &d_output_pipe);
 
     fft_thread = std::thread(&SDRSource::fftFun, this);
 }
@@ -61,12 +62,11 @@ void SDRSource::fftFun()
     int16_t buf16[8192 * 2];
 
     std::complex<float> sample_buffer[8192];
-    std::complex<double> buffer_fft_out[2048];
-    std::complex<double> buffer_fft_in[2048];
+    std::complex<float> buffer_fft_out[2048];
 
-    fftw_plan p = fftw_plan_dft_1d(2048, (fftw_complex *)buffer_fft_in, (fftw_complex *)buffer_fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwf_plan p = fftwf_plan_dft_1d(2048, (fftwf_complex *)sample_buffer, (fftwf_complex *)buffer_fft_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
-   // std::ifstream filein("/home/alan/Downloads/10-44-34_1701298418Hz(MetOp-C).wav");
+    // std::ifstream filein("/home/alan/Downloads/10-44-34_1701298418Hz(MetOp-C).wav");
 
     while (1)
     {
@@ -74,13 +74,10 @@ void SDRSource::fftFun()
 
         std::memcpy(d_output_pipe->writeBuf, sample_buffer, cnt * sizeof(std::complex<float>));
         d_output_pipe->swap(cnt);
-       
+
         if (y % runs_to_wait == 0)
         {
-            for (int i = 0; i < 2048; i++)
-                buffer_fft_in[i] = sample_buffer[i];
-
-            fftw_execute(p);
+            fftwf_execute(p);
 
             for (int i = 0, iMax = 2048 / 2; i < iMax; i++)
             {

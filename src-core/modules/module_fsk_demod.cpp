@@ -14,20 +14,24 @@ FSKDemodModule::FSKDemodModule(std::string input_file, std::string output_file_h
                                                                                                                                       d_lpf_cutoff(std::stoi(parameters["lpf_cutoff"])),
                                                                                                                                       d_lpf_transition_width(std::stoi(parameters["lpf_transition_width"]))
 {
-    // Init DSP blocks
-    file_source = std::make_shared<dsp::FileSourceBlock>(d_input_file, dsp::BasebandTypeFromString(parameters["baseband_format"]), d_buffer_size);
-    agc = std::make_shared<dsp::AGCBlock>(file_source->output_stream, 0.0038e-3f, 1.0f, 0.5f / 32768.0f, 65536);
-    lpf = std::make_shared<dsp::CCFIRBlock>(agc->output_stream, 1, dsp::firgen::low_pass(1, d_samplerate, d_lpf_cutoff, d_lpf_transition_width, dsp::fft::window::WIN_KAISER));
-    qua = std::make_shared<dsp::QuadratureDemodBlock>(lpf->output_stream, 1.0f);
-    rec = std::make_shared<dsp::FFMMClockRecoveryBlock>(qua->output_stream, (float)d_samplerate / (float)d_symbolrate, powf(0.01f, 2) / 4.0f, 0.5f, 0.01, 100e-6f);
-
     // Buffers
     sym_buffer = new int8_t[d_buffer_size * 10];
 }
 
+void FSKDemodModule::init()
+{
+    // Init DSP blocks
+    if (input_data_type == ModuleDataType::DATA_FILE)
+        file_source = std::make_shared<dsp::FileSourceBlock>(d_input_file, dsp::BasebandTypeFromString(d_parameters["baseband_format"]), d_buffer_size);
+    agc = std::make_shared<dsp::AGCBlock>(input_data_type == ModuleDataType::DATA_DSP_STREAM ? input_stream : file_source->output_stream, 0.0038e-3f, 1.0f, 0.5f / 32768.0f, 65536);
+    lpf = std::make_shared<dsp::CCFIRBlock>(agc->output_stream, 1, dsp::firgen::low_pass(1, d_samplerate, d_lpf_cutoff, d_lpf_transition_width, dsp::fft::window::WIN_KAISER));
+    qua = std::make_shared<dsp::QuadratureDemodBlock>(lpf->output_stream, 1.0f);
+    rec = std::make_shared<dsp::FFMMClockRecoveryBlock>(qua->output_stream, (float)d_samplerate / (float)d_symbolrate, powf(0.01f, 2) / 4.0f, 0.5f, 0.01, 100e-6f);
+}
+
 std::vector<ModuleDataType> FSKDemodModule::getInputTypes()
 {
-    return {DATA_FILE, DATA_STREAM};
+    return {DATA_FILE, DATA_DSP_STREAM};
 }
 
 std::vector<ModuleDataType> FSKDemodModule::getOutputTypes()
@@ -60,14 +64,15 @@ void FSKDemodModule::process()
     time_t lastTime = 0;
 
     // Start
-    file_source->start();
+    if (input_data_type == ModuleDataType::DATA_FILE)
+        file_source->start();
     agc->start();
     lpf->start();
     qua->start();
     rec->start();
 
     int dat_size = 0;
-    while (/*input_data_type == DATA_STREAM ? input_active.load() : */ !file_source->eof())
+    while (input_data_type == DATA_FILE ? !file_source->eof() : input_active.load())
     {
         dat_size = rec->output_stream->read();
 
@@ -83,7 +88,8 @@ void FSKDemodModule::process()
 
         data_out.write((char *)sym_buffer, dat_size);
 
-        progress = file_source->getPosition();
+        if (input_data_type == ModuleDataType::DATA_FILE)
+            progress = file_source->getPosition();
         if (time(NULL) % 10 == 0 && lastTime != time(NULL))
         {
             lastTime = time(NULL);
@@ -94,7 +100,8 @@ void FSKDemodModule::process()
     logger->info("Demodulation finished");
 
     // Stop
-    file_source->stop();
+    if (input_data_type == ModuleDataType::DATA_FILE)
+        file_source->stop();
     agc->stop();
     lpf->stop();
     qua->stop();

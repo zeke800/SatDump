@@ -1,7 +1,9 @@
 # SatDump
 
-A generic satellite data processing software.  
+A generic satellite data processing software. This repo contains windows builds as the current repository does not have builds. 
 *Thanks Mnux for the icon!*
+
+
 
 **Still WIP**
 
